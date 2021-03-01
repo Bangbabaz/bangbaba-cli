@@ -16,7 +16,7 @@ program
             {
                 name: 'name',
                 message: '请输入你的姓名',
-                default: '张三'
+                default: '张三1231321'
             },
             {
                 name: 'gender',
