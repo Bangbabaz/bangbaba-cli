@@ -15,6 +15,7 @@ program
     .command('create <name>')
     .description('create a new project')
     .action(name => {
+        
         inquirer.prompt([
             {
                 type: 'checkbox',
