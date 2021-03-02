@@ -5,55 +5,53 @@ const inquirer = require('inquirer')
 const chalk = require('chalk')
 const fs = require('fs')
 const ora = require('ora')
+const download = require('download-git-repo')
+const shell = require('shelljs')
+const handlebars = require('handlebars')
+const packageTemplate = require('../lib/template/package.json')
 
 program
     .version(require('../package.json').version)
     .command('create <name>')
     .description('create a new project')
     .action(name => {
-        console.log(name)
         inquirer.prompt([
             {
-                name: 'name',
-                message: '请输入你的姓名',
-                default: '张三1231321'
-            },
-            {
-                name: 'gender',
-                type: 'list',
-                message: '你的专业属于?',
+                type: 'checkbox',
+                name: 'UILibrary',
+                message: '请选择你要安装的UI库',
                 choices: [
-                    '工科', '文科'
+                    {
+                        name: 'iView',
+                        value: 'npm install view-design --save',
+                    },
+                    {
+                        name: 'element',
+                        value: 'npm install element-ui -S',
+                    },
                 ]
             }
         ]).then(res => {
-            console.log(chalk.green(res.name))
-            inquirer.prompt([
-                {
-                    name: 'major',
-                    type: 'list',
-                    message: '你的专业',
-                    when: res.gender === '工科',
-                    choices: [
-                        '软件工程', '计算机科学与技术'
-                    ]
-                },
-                {
-                    name: 'major',
-                    type: 'list',
-                    message: '你的专业',
-                    when: res.gender === '文科',
-                    choices: [
-                        '历史', '政治'
-                    ]
+            fs.mkdir(name, function () {
+                const content = {
+                    name: name
                 }
-            ]).then(res => {
-                const spinner = ora('下载资料中...').start()
-                setTimeout(() => {
-                    spinner.succeed('下载成功！')
-                }, 5000)
+                const result = handlebars.compile(JSON.stringify(packageTemplate))(content)
+                console.log(result)
+                shell.cd(name)
+                fs.writeFile('package.json', result, function () {
+                    const UILibrary = res.UILibrary.join(' ')
+                    const spinner = ora('开始下载依赖...').start()
+                    shell.exec(`npm install ${UILibrary}`, function (code, stdout, stderr) {
+                        if (!code) {
+                            spinner.stop(chalk.green('依赖安装完成！'))
+                        } else {
+                            spinner.stop()
+                            console.log(chalk.yellow(stderr))
+                        }
+                    })
+                })
             })
-
         })
     })
 
